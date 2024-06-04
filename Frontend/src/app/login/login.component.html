@@ -1,0 +1,43 @@
+<div class="logform"> 
+  <div class="container">
+    <form id="userForm">
+      <h2>LogIn</h2>
+  
+      <div class="form-control" [class.empty]="!inputValueEmail.trim()">
+        <input type="email"
+          id="email" name="email" required [(ngModel)]="inputValueEmail" (input)="onInputChange('email')" />
+        <label>
+          <span style="transition-delay: 0ms">E</span
+          ><span style="transition-delay: 50ms">-</span
+          ><span style="transition-delay: 100ms">M</span
+          ><span style="transition-delay: 150ms">a</span
+          ><span style="transition-delay: 200ms">i</span
+          ><span style="transition-delay: 250ms">l</span>
+          <span style="transition-delay: 300ms">:</span>
+        </label>
+      </div>
+  
+      <div class="form-control" [class.empty]="!inputValuePassword.trim()">
+        <input type="password"
+          id="password" name="password" required [(ngModel)]="inputValuePassword" (input)="onInputChange('password')" />
+        <label>
+          <span style="transition-delay: 0ms">P</span
+          ><span style="transition-delay: 50ms">a</span
+          ><span style="transition-delay: 100ms">s</span
+          ><span style="transition-delay: 150ms">s</span
+          ><span style="transition-delay: 200ms">w</span
+          ><span style="transition-delay: 250ms">o</span>
+          <span style="transition-delay: 300ms">r</span>
+          <span style="transition-delay: 350ms">d</span>
+          <span style="transition-delay: 400ms">:</span>
+        </label>
+      </div>
+  
+      <button class="button2" type="button" (click)="makeApiRequest()">
+        - Submit -
+      </button>
+  
+      <h5>{{ message }}</h5>
+    </form>
+  </div>
+</div>

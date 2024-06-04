@@ -1,0 +1,24 @@
+body{
+    margin: 0;
+    padding: 0;
+    background-color: rgb(21, 30, 47);
+}
+
+/* For WebKit (Chrome, Safari, etc.) */
+
+/* Track */
+::-webkit-scrollbar {
+    width: 3px; /* width of the scrollbar */
+  }
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: yellow; /* color of the scrollbar handle */
+    border-radius: 6px; /* roundness of the scrollbar handle */
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #f2ecec; /* color of the scrollbar handle on hover */
+  }
+  
