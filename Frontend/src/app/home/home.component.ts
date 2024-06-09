@@ -333,12 +333,12 @@ export class HomeComponent {
           cell.font = {
             bold: true,
             size: 14,
-            color: { argb: 'FFFFFFFF' },
+            // color: { argb: 'FFFFFFFF' },
           };
           cell.fill = {
             type: 'pattern',
             pattern: 'solid',
-            fgColor: { argb: 'FF800000' },
+            fgColor: { argb: 'FFFFFFFF' },
           };
         }
       });
