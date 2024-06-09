@@ -150,48 +150,114 @@ export class HomeComponent {
     let ExcelData: string[][] = [];
     let wastageInput = 0;
     let ConsumptionInput = 0.03;
-  
+
     let verient = this.SelectVerient;
-    
-  
+
     let workbook = new ExcelJS.Workbook();
     let worksheet = workbook.addWorksheet('Sheet1');
-  
-    ExcelData = [
-      [
-        'Placement ID',
-        'Amend (Y/N)',
-        'Placement',
-        'BOM',
-        'Company Season',
-        'Division',
-        'Department',
-        'Cluster',
-        'Development Style Number',
-        'Garment Way',
-        'Colorway Type',
-        'Garment Colorways',
-        'Product Alternatives',
-        'RM Size',
-        'Wastage %',
-        'Brandix Quote',
-        'Comment',
-        'Consumption (N)',
-        'UOM (YY)',
-        'RM Color Code',
-        'RM Color Name',
-        'Size Scale',
-        'Size Split',
-        'Main Material (Y/N)',
-        'OTT Days',
-        'Select Placement to Copy Sizes (Y/N)',
-        'Matching Requirement',
-        'Repeat Length',
-        'Joint Line Requirement',
-        'Colorways',
-      ],
+
+    // Add "input value" row
+    let inputValueRow: string[] = [];
+    let headerRow = [
+      'Placement ID',
+      'Amend (Y/N)',
+      'Placement',
+      'BOM',
+      'Company Season',
+      'Division',
+      'Department',
+      'Cluster',
+      'Development Style Number',
+      'Garment Way',
+      'Colorway Type',
+      'Garment Colorways',
+      'Product Alternatives',
+      'RM Size',
+      'Wastage %',
+      'Brandix Quote',
+      'Comment',
+      'Consumption (N)',
+      'UOM (YY)',
+      'RM Color Code',
+      'RM Color Name',
+      'Size Scale',
+      'Size Split',
+      'Main Material (Y/N)',
+      'OTT Days',
+      'Select Placement to Copy Sizes (Y/N)',
+      'Matching Requirement',
+      'Repeat Length',
+      'Joint Line Requirement',
+      'Colorways',
     ];
-  
+
+    // Create the "input value" row based on the specified columns
+    headerRow.forEach((header) => {
+      if (
+        [
+          'Placement',
+          'BOM',
+          'Company Season',
+          'Division',
+          'Department',
+          'Cluster',
+          'Development Style Number',
+          'Garment Colorways',
+          'Wastage %',
+          'Brandix Quote',
+          'UOM (YY)',
+          'RM Color Code',
+          'RM Color Name',
+          'Size Scale',
+          'Size Split',
+          'Main Material (Y/N)',
+          'OTT Days',
+          'Select Placement to Copy Sizes (Y/N)',
+          'Matching Requirement',
+          'Repeat Length',
+          'Joint Line Requirement',
+          'Colorways',
+        ].includes(header)
+      ) {
+        inputValueRow.push('Input value');
+      } else if (['Consumption (N)'].includes(header)) {
+        inputValueRow.push('Input Value ( Garment Sizes) - Mandatory');
+      } else {
+        inputValueRow.push('');
+      }
+    });
+    worksheet.addRow(inputValueRow);
+
+    // Add "mandatory" row under the specified columns
+    let mandatoryRow: string[] = [];
+    headerRow.forEach((header) => {
+      if (
+        [
+          'Placement',
+          'BOM',
+          'Company Season',
+          'Division',
+          'Department',
+          'Cluster',
+          'Development Style Number',
+          'Garment Colorways',
+          'Brandix Quote',
+          'UOM (YY)',
+          'RM Color Code',
+          'RM Color Name',
+        ].includes(header)
+      ) {
+        mandatoryRow.push('Mandatory');
+      } else if (['Wastage %'].includes(header)) {
+        mandatoryRow.push('Only enter integers (exclude % symbol)');
+      } else {
+        mandatoryRow.push('');
+      }
+    });
+    worksheet.addRow(mandatoryRow);
+
+    ExcelData = [headerRow];
+
     for (let i = 1; i < keys.length; i++) {
       this.Template[keys[i]].forEach((element: any) => {
         if (verient === 'PVH-CKNA') {
@@ -199,7 +265,11 @@ export class HomeComponent {
         } else if (verient === 'PVH-TUG') {
           wastageInput = 0;
         }
-        if ((element['BOM_SECTION']==='Sewing' || element['BOM_SECTION']==='Packing') && verient === 'PVH-TUG'){
+        if (
+          (element['BOM_SECTION'] === 'Sewing' ||
+            element['BOM_SECTION'] === 'Packing') &&
+          verient === 'PVH-TUG'
+        ) {
           wastageInput = 2;
         }
         ExcelData.push([
@@ -235,18 +305,18 @@ export class HomeComponent {
         ]);
       });
     }
-  
+
     ExcelData.forEach((row, rowIndex) => {
       let highlightRow = false;
       row.forEach((value, colIndex) => {
-        let cell = worksheet.getCell(rowIndex + 1, colIndex + 1);
+        let cell = worksheet.getCell(rowIndex + 3, colIndex + 1); // Adjusted rowIndex to start after "input value" and "mandatory" rows
         cell.value = value;
 
         // set no center cell
         if (![2, 11, 19, 20].includes(colIndex))
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
         cell.font = {
-          size: 13
+          size: 13,
         };
         cell.border = {
           top: { style: 'thin' },
@@ -254,11 +324,11 @@ export class HomeComponent {
           bottom: { style: 'thin' },
           right: { style: 'thin' },
         };
-  
+
         if (colIndex === 18 && value === '') {
           highlightRow = true;
         }
-  
+
         if (rowIndex === 0) {
           cell.font = {
             bold: true,
@@ -272,10 +342,10 @@ export class HomeComponent {
           };
         }
       });
-  
+
       if (highlightRow) {
         row.forEach((_, colIndex) => {
-          let cell = worksheet.getCell(rowIndex + 1, colIndex + 1);
+          let cell = worksheet.getCell(rowIndex + 3, colIndex + 1); // Adjusted rowIndex to start after "input value" and "mandatory" rows
           cell.fill = {
             type: 'pattern',
             pattern: 'solid',
@@ -284,10 +354,10 @@ export class HomeComponent {
         });
       }
     });
-  
-    worksheet.columns.forEach((column:any) => {
+
+    worksheet.columns.forEach((column: any) => {
       let maxLength = 0;
-      column.eachCell({ includeEmpty: true }, (cell:any) => {
+      column.eachCell({ includeEmpty: true }, (cell: any) => {
         let columnLength = cell.text.length;
         if (columnLength > maxLength) {
           maxLength = columnLength;
@@ -295,12 +365,12 @@ export class HomeComponent {
       });
       column.width = maxLength + 8;
     });
-  
+
     worksheet.autoFilter = {
-      from: { row: 1, column: 1 },
-      to: { row: ExcelData.length, column: ExcelData[0].length },
+      from: { row: 3, column: 1 }, // Adjusted to start from row 3
+      to: { row: ExcelData.length + 2, column: ExcelData[0].length }, // Adjusted to end after "input value" and "mandatory" rows
     };
-  
+
     workbook.xlsx.writeBuffer().then((data) => {
       let blob = new Blob([data], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
