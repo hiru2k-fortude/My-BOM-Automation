@@ -144,20 +144,18 @@ export class HomeComponent {
       alert('-- Invalid Response --');
     }
   }
-
   downloadFile(): void {
     const keys = Object.keys(this.Template);
     let ExcelData: string[][] = [];
     let wastageInput = 0;
-    let ConsumptionInput = 0.03;
+    let ConsumptionInput = 0.003;
 
     let verient = this.SelectVerient;
 
     let workbook = new ExcelJS.Workbook();
     let worksheet = workbook.addWorksheet('Sheet1');
 
-    // Add "input value" row
-    let inputValueRow: string[] = [];
+    // Header row with merged cells for Consumption (N)
     let headerRow = [
       'Placement ID',
       'Amend (Y/N)',
@@ -176,7 +174,11 @@ export class HomeComponent {
       'Wastage %',
       'Brandix Quote',
       'Comment',
-      'Consumption (N)',
+      'Consumption (N)', // Main header for Consumption (N)
+      '', // Part 1
+      '', // Part 2
+      '', // Part 3
+      '', // Part 4
       'UOM (YY)',
       'RM Color Code',
       'RM Color Name',
@@ -191,8 +193,8 @@ export class HomeComponent {
       'Colorways',
     ];
 
-    // Create the "input value" row based on the specified columns
-    headerRow.forEach((header) => {
+    // Create input value row based on the specified columns
+    let inputValueRow: string[] = headerRow.map((header) => {
       if (
         [
           'Placement',
@@ -219,18 +221,17 @@ export class HomeComponent {
           'Colorways',
         ].includes(header)
       ) {
-        inputValueRow.push('Input value');
-      } else if (['Consumption (N)'].includes(header)) {
-        inputValueRow.push('Input Value ( Garment Sizes) - Mandatory');
+        return 'Input value';
       } else {
-        inputValueRow.push('');
+        return '';
       }
     });
+
+    inputValueRow[17] = 'Input Value (Garment Sizes) - Mandatory';
     worksheet.addRow(inputValueRow);
 
-    // Add "mandatory" row under the specified columns
-    let mandatoryRow: string[] = [];
-    headerRow.forEach((header) => {
+    // Add mandatory row under the specified columns
+    let mandatoryRow: string[] = headerRow.map((header) => {
       if (
         [
           'Placement',
@@ -247,17 +248,37 @@ export class HomeComponent {
           'RM Color Name',
         ].includes(header)
       ) {
-        mandatoryRow.push('Mandatory');
-      } else if (['Wastage %'].includes(header)) {
-        mandatoryRow.push('Only enter integers (exclude % symbol)');
+        return 'Mandatory';
+      } else if (header === 'Wastage %') {
+        return 'Only enter integers (exclude % symbol)';
       } else {
-        mandatoryRow.push('');
+        return '';
       }
     });
+    mandatoryRow[21] = 'All';
     worksheet.addRow(mandatoryRow);
 
-    ExcelData = [headerRow];
+    // Add header row to the worksheet
+    worksheet.addRow(headerRow);
 
+    // Merge cells for the "Consumption (N)" header
+    worksheet.mergeCells('R1:V1');
+
+    // Merge cells for the "Consumption (N)" header
+    worksheet.mergeCells('R3:V3');
+
+    // Style the header row
+    worksheet.getRow(3).eachCell((cell, colNumber) => {
+      cell.font = { bold: true, size: 14 };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFFFFFF' },
+      };
+    });
+
+    // Add data rows
     for (let i = 1; i < keys.length; i++) {
       this.Template[keys[i]].forEach((element: any) => {
         if (verient === 'PVH-CKNA') {
@@ -290,6 +311,10 @@ export class HomeComponent {
           wastageInput.toString(),
           element['BrandixQuote'],
           '',
+          '', // Part 1
+          '', // Part 2
+          '', // Part 3
+          '', // Part 4
           ConsumptionInput.toString(),
           element['uom'],
           element['RM_COLOR_REF'],
@@ -306,18 +331,17 @@ export class HomeComponent {
       });
     }
 
+    // Add data to worksheet and style rows
     ExcelData.forEach((row, rowIndex) => {
       let highlightRow = false;
       row.forEach((value, colIndex) => {
-        let cell = worksheet.getCell(rowIndex + 3, colIndex + 1); // Adjusted rowIndex to start after "input value" and "mandatory" rows
+        let cell = worksheet.getCell(rowIndex + 4, colIndex + 1);
         cell.value = value;
 
-        // set no center cell
-        if (![2, 11, 19, 20].includes(colIndex))
+        if (![2, 11, 19, 20].includes(colIndex)) {
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        cell.font = {
-          size: 13,
-        };
+        }
+        cell.font = { size: 13 };
         cell.border = {
           top: { style: 'thin' },
           left: { style: 'thin' },
@@ -325,27 +349,14 @@ export class HomeComponent {
           right: { style: 'thin' },
         };
 
-        if (colIndex === 18 && value === '') {
+        if (colIndex >= 17 && colIndex <= 21 && value === '') {
           highlightRow = true;
-        }
-
-        if (rowIndex === 0) {
-          cell.font = {
-            bold: true,
-            size: 14,
-            // color: { argb: 'FFFFFFFF' },
-          };
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFFFFFFF' },
-          };
         }
       });
 
       if (highlightRow) {
         row.forEach((_, colIndex) => {
-          let cell = worksheet.getCell(rowIndex + 3, colIndex + 1); // Adjusted rowIndex to start after "input value" and "mandatory" rows
+          let cell = worksheet.getCell(rowIndex + 4, colIndex + 1);
           cell.fill = {
             type: 'pattern',
             pattern: 'solid',
@@ -355,22 +366,27 @@ export class HomeComponent {
       }
     });
 
-    worksheet.columns.forEach((column: any) => {
-      let maxLength = 0;
-      column.eachCell({ includeEmpty: true }, (cell: any) => {
-        let columnLength = cell.text.length;
-        if (columnLength > maxLength) {
-          maxLength = columnLength;
-        }
-      });
-      column.width = maxLength + 8;
+    // Adjust column widths
+    worksheet.columns.forEach((column) => {
+      if (column.eachCell) {
+        let maxLength = 0;
+        column.eachCell({ includeEmpty: true }, (cell) => {
+          let columnLength = cell.text.length;
+          if (columnLength > maxLength) {
+            maxLength = columnLength;
+          }
+        });
+        column.width = maxLength + 8;
+      }
     });
 
+    // Apply auto filter
     worksheet.autoFilter = {
-      from: { row: 3, column: 1 }, // Adjusted to start from row 3
-      to: { row: ExcelData.length + 2, column: ExcelData[0].length }, // Adjusted to end after "input value" and "mandatory" rows
+      from: { row: 3, column: 1 },
+      to: { row: ExcelData.length + 3, column: headerRow.length },
     };
 
+    // Generate and save the Excel file
     workbook.xlsx.writeBuffer().then((data) => {
       let blob = new Blob([data], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
