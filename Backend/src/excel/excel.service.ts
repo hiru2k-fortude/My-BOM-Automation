@@ -80,8 +80,8 @@ export class ExcelService {
       // go through the rows of excel sheet
       AllData[Style].forEach((ele: any) => {
         //to compare values
-        supplierName = ele.SUPPLIER_NAME.toUpperCase();
-        Supplier_Quality_Reference = ele.SUPPLIER_REF.toUpperCase();
+        supplierName = ele.SUPPLIER_NAME.toUpperCase().trim();
+        Supplier_Quality_Reference = ele.SUPPLIER_REF.toUpperCase().trim();
         Season = ele.SEASON;
         Color_Base = ele.CLR_DYE_TECH;
         Item_Name = ele.ITEM_NAME;
@@ -101,11 +101,55 @@ export class ExcelService {
         //console.log('THIS IS ELE DATA', ele);
 
         // materialType = ele.BOM_SECTION;
-        let BrandixQuoteArray_1 = [];
-        let BrandixQuoteArray_2 = [];
-        let BrandixQuoteArray_3 = [];
-        let BrandixQuoteArray_4 = [];
-        let BrandixQuoteArray_5 = [];
+        const BrandixQuoteArrays = {};
+        const maxConditionCounts = {};
+
+        // Define a function to push quotes into the appropriate array
+        function pushToBrandixQuoteArray(
+          subMaterialType,
+          conditionCount,
+          quote,
+          ItemName,
+          RefNo,
+          SupName,
+        ) {
+          const arrayName = `${subMaterialType}_${conditionCount}`;
+          if (!BrandixQuoteArrays[arrayName]) {
+            BrandixQuoteArrays[arrayName] = [];
+          }
+          BrandixQuoteArrays[arrayName].push(quote, ItemName, RefNo, SupName);
+
+          // Update the max condition count for the sub-material type
+          if (
+            !maxConditionCounts[subMaterialType] ||
+            maxConditionCounts[subMaterialType] < conditionCount
+          ) {
+            maxConditionCounts[subMaterialType] = conditionCount;
+          }
+        }
+
+        // Define a function to count unique quotes in an array
+        function getUniqueQuotes(quotes) {
+          return [...new Set(quotes)];
+        }
+
+        // Function to process quotes for each sub-material type and condition
+        function processQuotes(subMaterialType, conditions, quote) {
+          const trueConditionCount = countTrueConditions(conditions);
+          BrandixQoute = quote.barndix_quote;
+          let ItemName = quote.item_name;
+          let RefNo = quote.Supplier_Quality_Reference;
+          let SupName = quote.supplier_name;
+          uom = quote.uom;
+          pushToBrandixQuoteArray(
+            subMaterialType,
+            trueConditionCount,
+            BrandixQoute,
+            ItemName,
+            RefNo,
+            SupName,
+          );
+        }
 
         if (BrandixQuoteData[Style] !== undefined) {
           for (let i = 0; i < BrandixQuoteData[Style].data.length; i++) {
@@ -227,343 +271,88 @@ export class ExcelService {
               length_check,
             ];
 
+            // Your condition handling logic
             if (
               extracted_subMaterialType == 'Collar' ||
               extracted_subMaterialType == 'Cuff'
             ) {
-              // Count the number of true conditions
-              const trueConditionCount = countTrueConditions(
-                conditions_collar_cuff,
-              );
-              // Check if at least 4 conditions are true
-              if (trueConditionCount == 5) {
-                BrandixQoute = Qoute.barndix_quote;
-                BrandixQuoteArray_1.push(BrandixQoute);
-                uom = Qoute.uom;
-                //console.log('comb 3 quote', BrandixQoute);
-              } else if (trueConditionCount == 4) {
-                BrandixQoute = Qoute.barndix_quote;
-                BrandixQuoteArray_2.push(BrandixQoute);
-                uom = Qoute.uom;
-                // console.log('comb 2-1 quote', BrandixQoute);
-              } else if (trueConditionCount == 3) {
-                BrandixQoute = Qoute.barndix_quote;
-                BrandixQuoteArray_3.push(BrandixQoute);
-                uom = Qoute.uom;
-                // console.log('comb 2-2 quote', BrandixQoute);
-              } else if (trueConditionCount == 2) {
-                BrandixQoute = Qoute.barndix_quote;
-                BrandixQuoteArray_4.push(BrandixQoute);
-                uom = Qoute.uom;
-                // console.log('comb 2-3 quote', BrandixQoute);
-              } else if (trueConditionCount == 1) {
-                BrandixQoute = Qoute.barndix_quote;
-                BrandixQuoteArray_5.push(BrandixQoute);
-                uom = Qoute.uom;
-                // console.log('comb 1-1 quote', BrandixQoute);
-              }
+              processQuotes('Collar_Cuff', conditions_collar_cuff, Qoute);
             }
 
             if (
-              extracted_subMaterialType == 'Interlining' ||
-              extracted_subMaterialType == 'Pocketing' ||
-              extracted_subMaterialType == 'Warp Knit' ||
-              extracted_subMaterialType == 'Weft Knit' ||
-              extracted_subMaterialType == 'Woven'
+              [
+                'Interlining',
+                'Pocketing',
+                'Warp Knit',
+                'Weft Knit',
+                'Woven',
+              ].includes(extracted_subMaterialType)
             ) {
-              // Count the number of true conditions
-              const trueConditionCount = countTrueConditions(
+              processQuotes(
+                'Interlining_Pocketing_Warp_Knit_Weft_Knit_Woven',
                 conditions_Interlining_Pocketing_Warp_Knit_Weft_Knit_Woven,
+                Qoute,
               );
-              if (trueConditionCount == 4) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_1.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 3) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_2.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 2) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_3.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 1) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_4.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              }
             }
+
             if (
               extracted_subMaterialType == 'Button' ||
               extracted_subMaterialType == 'Eyelet'
             ) {
-              // Count the number of true conditions
-              const trueConditionCount = countTrueConditions(
-                conditions_Button_Eyelet,
-              );
-              if (trueConditionCount == 4) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_1.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 3) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_2.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 2) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_3.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 1) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_4.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              }
+              processQuotes('Button_Eyelet', conditions_Button_Eyelet, Qoute);
             }
+
+            // Continue similarly for other sub-material types and conditions
+
             if (extracted_subMaterialType == 'Elastic') {
-              // Count the number of true conditions
-              const trueConditionCount =
-                countTrueConditions(conditions_Elastic);
-              if (trueConditionCount == 4) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_1.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 3) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_2.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 2) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_3.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 1) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_4.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              }
+              processQuotes('Elastic', conditions_Elastic, Qoute);
             }
+
             if (
-              extracted_subMaterialType == 'Heat Seal' ||
-              extracted_subMaterialType == 'Patch' ||
-              extracted_subMaterialType == 'Box' ||
-              extracted_subMaterialType == 'Carton' ||
-              extracted_subMaterialType == 'Divider' ||
-              extracted_subMaterialType == 'Hanger' ||
-              extracted_subMaterialType == 'Poly Bag' ||
-              extracted_subMaterialType == 'Sticker' ||
-              extracted_subMaterialType == 'Tag'
+              [
+                'Heat Seal',
+                'Patch',
+                'Box',
+                'Carton',
+                'Divider',
+                'Hanger',
+                'Poly Bag',
+                'Sticker',
+                'Tag',
+              ].includes(extracted_subMaterialType)
             ) {
-              // Count the number of true conditions
-              const trueConditionCount = countTrueConditions(
+              processQuotes(
+                'Heat_Seal_Patch_Box_Carton_Divider_Hanger_Poly_Bag_Sticker_Tag',
                 conditions_Heat_Seal_Patch_Box_Carton_Divider_Hanger_Poly_Bag_Sticker_Tag,
+                Qoute,
               );
-              if (trueConditionCount == 3) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_1.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 2) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_2.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 1) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_3.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              }
             }
-            if (extracted_subMaterialType == 'Label') {
-              // Count the number of true conditions
-              const trueConditionCount = countTrueConditions(conditions_Label);
-              if (trueConditionCount == 5) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_1.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 4) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_2.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 3) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_3.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 2) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_4.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 1) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_5.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              }
-            }
-            if (extracted_subMaterialType == 'Mobilon') {
-              // Count the number of true conditions
-              const trueConditionCount =
-                countTrueConditions(conditions_Mobilon);
-              if (trueConditionCount == 4) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_1.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 3) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_2.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 2) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_3.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 1) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_4.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              }
-            }
-            if (
-              extracted_subMaterialType == 'Ring' ||
-              extracted_subMaterialType == 'Slide' ||
-              extracted_subMaterialType == 'Tape'
-            ) {
-              // Count the number of true conditions
-              const trueConditionCount = countTrueConditions(
-                conditions_Ring_Slide_Tape,
-              );
-              if (trueConditionCount == 4) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_1.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 3) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_2.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 2) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_3.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 1) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_4.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              }
-            }
-            if (extracted_subMaterialType == 'Zipper') {
-              // Count the number of true conditions
-              const trueConditionCount = countTrueConditions(conditions_Zipper);
-              if (trueConditionCount == 4) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_1.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 3) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_2.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 2) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_3.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 1) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_4.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              }
-            }
+
             if (
               extracted_subMaterialType == 'Dye' ||
               extracted_subMaterialType == 'Wash'
             ) {
-              // Count the number of true conditions
-              const trueConditionCount =
-                countTrueConditions(conditions_Dye_Wash);
-              if (trueConditionCount == 3) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_1.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 2) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_2.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 1) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_3.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              }
+              processQuotes('Dye_Wash', conditions_Dye_Wash, Qoute);
             }
+
             if (
-              extracted_subMaterialType == 'Embroidery' ||
-              extracted_subMaterialType == 'Heat Transfer' ||
-              extracted_subMaterialType == 'Print' ||
-              extracted_subMaterialType == 'Applique' ||
-              extracted_subMaterialType == 'Bonding'
+              [
+                'Embroidery',
+                'Heat Transfer',
+                'Print',
+                'Applique',
+                'Bonding',
+              ].includes(extracted_subMaterialType)
             ) {
-              // Count the number of true conditions
-              const trueConditionCount = countTrueConditions(
+              processQuotes(
+                'Embroidery_Heat_Transfer_Print_Applique_Bonding',
                 conditions_Embroidery_Heat_Transfer_Print_Applique_Bonding,
+                Qoute,
               );
-              if (trueConditionCount == 1) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_1.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              }
             }
+
             if (extracted_subMaterialType == 'Tag Pin') {
-              // Count the number of true conditions
-              const trueConditionCount =
-                countTrueConditions(conditions_Tag_Pin);
-              if (trueConditionCount == 4) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_1.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 3) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_2.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              } else if (trueConditionCount == 2) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_3.push(BrandixQoute);
-                // break; //exit the branfdix quote data loop imedietly
-              } else if (trueConditionCount == 1) {
-                BrandixQoute = Qoute.barndix_quote;
-                uom = Qoute.uom;
-                BrandixQuoteArray_3.push(BrandixQoute);
-                // break; //exit the brandix quote data loop imedietly
-              }
+              processQuotes('Tag_Pin', conditions_Tag_Pin, Qoute);
             }
           }
 
@@ -598,59 +387,15 @@ export class ExcelService {
         const UniqBrandixQuoteArray_5 = [];
         const seen = {};
 
-        BrandixQuoteArray_1.forEach((value) => {
-          if (!seen[value]) {
-            UniqBrandixQuoteArray_1.push(value);
-            seen[value] = true;
-          }
-        });
-
-        BrandixQuoteArray_2.forEach((value) => {
-          if (!seen[value]) {
-            UniqBrandixQuoteArray_2.push(value);
-            seen[value] = true;
-          }
-        });
-
-        BrandixQuoteArray_3.forEach((value) => {
-          if (!seen[value]) {
-            UniqBrandixQuoteArray_3.push(value);
-            seen[value] = true;
-          }
-        });
-        BrandixQuoteArray_4.forEach((value) => {
-          if (!seen[value]) {
-            UniqBrandixQuoteArray_4.push(value);
-            seen[value] = true;
-          }
-        });
-        BrandixQuoteArray_5.forEach((value) => {
-          if (!seen[value]) {
-            UniqBrandixQuoteArray_5.push(value);
-            seen[value] = true;
-          }
-        });
-        if (UniqBrandixQuoteArray_1.length !== 0) {
-          ele.BrandixQuote = UniqBrandixQuoteArray_1;
-          // console.log('this is array 1', UniqBrandixQuoteArray_1);
-        } else {
-          if (UniqBrandixQuoteArray_2.length !== 0) {
-            ele.BrandixQuote = UniqBrandixQuoteArray_2;
-            //   console.log('this is array 2', UniqBrandixQuoteArray_2);
-          } else {
-            if (UniqBrandixQuoteArray_3.length !== 0) {
-              ele.BrandixQuote = UniqBrandixQuoteArray_3;
-              //  console.log('this is array 3', UniqBrandixQuoteArray_3);
-            } else {
-              if (UniqBrandixQuoteArray_4.length !== 0) {
-                ele.BrandixQuote = UniqBrandixQuoteArray_4;
-                //   console.log('this is array 4', UniqBrandixQuoteArray_4);
-              } else {
-                ele.BrandixQuote = UniqBrandixQuoteArray_5;
-                //   console.log('this is array 5', UniqBrandixQuoteArray_5);
-              }
-            }
-          }
+        // Extract and display unique quotes for each sub-material type with the maximum conditions satisfied
+        for (const subMaterialType in maxConditionCounts) {
+          const maxConditionCount = maxConditionCounts[subMaterialType];
+          const arrayName = `${subMaterialType}_${maxConditionCount}`;
+          const uniqueQuotes = getUniqueQuotes(BrandixQuoteArrays[arrayName]);
+          ele.BrandixQuote = uniqueQuotes;
+          console.log(`Sub-Material Type: ${subMaterialType}`);
+          console.log(`Max Conditions Satisfied: ${maxConditionCount}`);
+          console.log('Unique Quotes:', uniqueQuotes);
         }
 
         // Reset

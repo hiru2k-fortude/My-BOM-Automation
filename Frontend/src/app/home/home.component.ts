@@ -354,6 +354,19 @@ export class HomeComponent {
         }
       });
 
+      // Highlight specific cells under the "Brandix Quote", "UOM", and "RM Size" headers
+      //const headerCellsToHighlight = ['C3', 'D3','E3','F3','G3','H3','I3','L3','R3','S3','T3','U3']; // Cells under headers
+      //const mandatoryCellsToHighlight = ['C2', 'D2', 'E2','F2','G2','H2','I2','L2']; // Cell coordinates containing "Mandatory"
+      //const inputCellsToHighlight = ['','','',''];
+
+      // Combine the cells to highlight and the mandatory cells
+      //  const allCells = [
+      //  ...headerCellsToHighlight,
+      //  ...mandatoryCellsToHighlight,
+      //  ...inputCellsToHighlight,
+
+      // ];
+
       if (highlightRow) {
         row.forEach((_, colIndex) => {
           let cell = worksheet.getCell(rowIndex + 4, colIndex + 1);
