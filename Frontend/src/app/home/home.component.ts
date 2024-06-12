@@ -293,7 +293,8 @@ export class HomeComponent {
         ) {
           wastageInput = 2;
         }
-        ExcelData.push([
+
+        const rowData = [
           '',
           '',
           element['PLACEMENT_NAME'],
@@ -327,7 +328,9 @@ export class HomeComponent {
           '',
           '',
           '',
-        ]);
+        ];
+        const rowIndex = element['IDX'] + 3; // Ensure data starts from the 4th row
+        worksheet.getRow(rowIndex).values = rowData; // Directly set the row values
       });
     }
 
