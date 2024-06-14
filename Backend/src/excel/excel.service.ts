@@ -35,6 +35,7 @@ export class ExcelService {
 
     let supplierName: string;
     let Supplier_Quality_Reference: string;
+    let Bom_Section: string;
     let Season: string;
     let Color_Base: string;
     let Item_Name: string;
@@ -72,302 +73,361 @@ export class ExcelService {
 
     // Function to count the number of true conditions
     function countTrueConditions(conditions) {
+      // Check if conditions is defined and is an array
+      if (!Array.isArray(conditions)) {
+        // Handle the case where conditions is not a valid array
+        console.error('Invalid conditions array:', conditions);
+        return 0; // Return an appropriate value or throw an error
+      }
+      // Continue with the function logic
       return conditions.filter((condition) => condition).length;
     }
+    if (Styles && Array.isArray(Styles)) {
+      for (let i = 1; i < Styles.length; i++) {
+        let sub_mat_array_under_one_ref = [];
+        let Style = Styles[i];
+        // go through the rows of excel sheet
+        AllData[Style].forEach((ele: any) => {
+          //to compare values
 
-    for (let i = 1; i < Styles.length; i++) {
-      let Style = Styles[i];
-      // go through the rows of excel sheet
-      AllData[Style].forEach((ele: any) => {
-        //to compare values
-        supplierName = ele.SUPPLIER_NAME.toUpperCase().trim();
-        Supplier_Quality_Reference = ele.SUPPLIER_REF.toUpperCase().trim();
-        Season = ele.SEASON;
-        Color_Base = ele.CLR_DYE_TECH;
-        Item_Name = ele.ITEM_NAME;
-        //Width = ele.
-        //Length = ele.
-        //Size = ele.
-        //Diameter = ele.
-        //Zipper_Length = ele.
-        //WD_Number = ele.
-        //Graphic = ele.
+          supplierName = ele.SUPPLIER_NAME
+            ? ele.SUPPLIER_NAME.toUpperCase().trim()
+            : '';
+          Supplier_Quality_Reference = ele.SUPPLIER_REF
+            ? ele.SUPPLIER_REF.toUpperCase().trim()
+            : '';
+          Season = ele.SEASON;
+          Color_Base = ele.CLR_DYE_TECH;
+          Item_Name = ele.ITEM_NAME;
 
-        //
-        //no need to compare the style
-        Style_Number = ele.STYLE_NO_INDIVDUAL;
+          //get bom section to idntify washes and embelishments
+          Bom_Section = ele.BOM_SECTION;
 
-        ///////
-        //console.log('THIS IS ELE DATA', ele);
+          //Width = ele.
+          //Length = ele.
+          //Size = ele.
+          //Diameter = ele.
+          //Zipper_Length = ele.
+          //WD_Number = ele.
+          //Graphic = ele.
 
-        // materialType = ele.BOM_SECTION;
-        const BrandixQuoteArrays = {};
-        const maxConditionCounts = {};
+          //
+          //no need to compare the style
+          Style_Number = ele.STYLE_NO_INDIVDUAL;
 
-        // Define a function to push quotes into the appropriate array
-        function pushToBrandixQuoteArray(
-          subMaterialType,
-          conditionCount,
-          quote,
-          ItemName,
-          RefNo,
-          SupName,
-        ) {
-          const arrayName = `${subMaterialType}_${conditionCount}`;
-          if (!BrandixQuoteArrays[arrayName]) {
-            BrandixQuoteArrays[arrayName] = [];
-          }
-          BrandixQuoteArrays[arrayName].push(quote, ItemName, RefNo, SupName);
+          ///////
+          //console.log('THIS IS ELE DATA', ele);
 
-          // Update the max condition count for the sub-material type
-          if (
-            !maxConditionCounts[subMaterialType] ||
-            maxConditionCounts[subMaterialType] < conditionCount
-          ) {
-            maxConditionCounts[subMaterialType] = conditionCount;
-          }
-        }
+          // materialType = ele.BOM_SECTION;
+          const BrandixQuoteArrays = {};
+          const maxConditionCounts = {};
 
-        // Define a function to count unique quotes in an array
-        function getUniqueQuotes(quotes) {
-          return [...new Set(quotes)];
-        }
+          //washes and finishes , embelishments and grapphics
+          const sub_materials_without_supplier_references = [
+            'Dye',
+            'Wash',
+            'Embroidery',
+            'Heat Transfer',
+            'Print',
+            'Applique',
+            'Bonding',
+          ];
 
-        // Function to process quotes for each sub-material type and condition
-        function processQuotes(subMaterialType, conditions, quote) {
-          const trueConditionCount = countTrueConditions(conditions);
-          BrandixQoute = quote.barndix_quote;
-          let ItemName = quote.item_name;
-          let RefNo = quote.Supplier_Quality_Reference;
-          let SupName = quote.supplier_name;
-          uom = quote.uom;
-          pushToBrandixQuoteArray(
+          // Define a function to push quotes into the appropriate array
+          function pushToBrandixQuoteArray(
             subMaterialType,
-            trueConditionCount,
-            BrandixQoute,
+            conditionCount,
+            quote,
             ItemName,
             RefNo,
             SupName,
-          );
-        }
-
-        if (BrandixQuoteData[Style] !== undefined) {
-          for (let i = 0; i < BrandixQuoteData[Style].data.length; i++) {
-            let Qoute = BrandixQuoteData[Style].data[i];
-            let long_quote_season = StylesPlmData[Style].fs;
-
-            // Extract the season part from e.fs
-            const match = long_quote_season.match(/-(\w+)-\d{4}$/);
-
-            if (match) {
-              // Extract and format the season and year
-              const seasonPart = match[0]; // Get the matched part: "-Fall-2024"
-              quote_season = seasonPart.split('-').filter(Boolean).join(' '); // Split by hyphen, remove empty strings, and join with a space
+          ) {
+            const arrayName = `${subMaterialType}_${conditionCount}`;
+            if (!BrandixQuoteArrays[arrayName]) {
+              BrandixQuoteArrays[arrayName] = [];
             }
+            BrandixQuoteArrays[arrayName].push(quote, ItemName, RefNo, SupName);
 
-            //console.log(quote_season);
-            //console.log('this is the style', Style);
-            //console.log('THIS IS QUOTE DATA', Qoute);
+            // Update the max condition count for the sub-material type
+            if (
+              !maxConditionCounts[subMaterialType] ||
+              maxConditionCounts[subMaterialType] < conditionCount
+            ) {
+              maxConditionCounts[subMaterialType] = conditionCount;
+            }
+          }
 
-            //extreact the sub-material part from item_name of plm data
-            subMaterialType = Qoute.item_name;
-            let delimiter = ' - ';
-            let index = subMaterialType.indexOf(delimiter);
-            let extracted_subMaterialType = subMaterialType.substring(
-              index + 1 + delimiter.length,
+          // Define a function to count unique quotes in an array
+          function getUniqueQuotes(quotes) {
+            return [...new Set(quotes)];
+          }
+
+          // Function to process quotes for each sub-material type and condition
+          function processQuotes(subMaterialType, conditions, quote) {
+            const trueConditionCount = countTrueConditions(conditions);
+            BrandixQoute = quote.barndix_quote;
+            let ItemName = quote.item_name;
+            let RefNo = quote.Supplier_Quality_Reference;
+            let SupName = quote.supplier_name;
+            uom = quote.uom;
+            pushToBrandixQuoteArray(
+              subMaterialType,
+              trueConditionCount,
+              BrandixQoute,
+              ItemName,
+              RefNo,
+              SupName,
             );
+          }
 
-            // Compare with PLM Data
-            supplier_nameCheck =
-              Qoute.supplier_name.toUpperCase() === supplierName;
+          if (BrandixQuoteData[Style] !== undefined) {
+            if (BrandixQuoteData[Style] && BrandixQuoteData[Style].data) {
+              for (let i = 0; i < BrandixQuoteData[Style].data.length; i++) {
+                let Qoute = BrandixQuoteData[Style].data[i];
 
-            //console.log('quote supplier',Qoute.supplier_name.toUpperCase());
-            //console.log('2nd supplier',supplierName);
+                Supplier_Quality_ReferenceCheck =
+                  Supplier_Quality_Reference ===
+                  (Qoute['Supplier_Quality_Reference']
+                    ? Qoute['Supplier_Quality_Reference'].toUpperCase()
+                    : '');
 
-            Supplier_Quality_ReferenceCheck =
-              Supplier_Quality_Reference ===
-              Qoute['Supplier_Quality_Reference'].toUpperCase();
+                if (
+                  Supplier_Quality_ReferenceCheck == true ||
+                  Bom_Section == 'Print'
+                ) {
+                  let long_quote_season = StylesPlmData[Style].fs;
 
-            company_seasonCheck = Season === quote_season;
-            //color_baseCheck = Color_Base ===
-            //size_check = Size ===
-            //customer_referenceCheck ===
-            //width_check ===
-            // length_check ===
-            //diameter_check===
-            //wd_numberCheck===
-            //graphic_check===
-            //zipper_lengthCheck ===
+                  // Extract the season part from e.fs
+                  const match = long_quote_season.match(/-(\w+)-\d{4}$/);
 
-            // List of conditions
-            const conditions_collar_cuff = [
-              supplier_nameCheck,
-              Supplier_Quality_ReferenceCheck,
-              company_seasonCheck,
-              color_baseCheck,
-              size_check,
-            ];
-            const conditions_Interlining_Pocketing_Warp_Knit_Weft_Knit_Woven = [
-              supplier_nameCheck,
-              Supplier_Quality_ReferenceCheck,
-              company_seasonCheck,
-              color_baseCheck,
-            ];
-            const conditions_Button_Eyelet = [
-              supplier_nameCheck,
-              Supplier_Quality_ReferenceCheck,
-              company_seasonCheck,
-              diameter_check,
-            ];
-            const conditions_Elastic = [
-              supplier_nameCheck,
-              Supplier_Quality_ReferenceCheck,
-              customer_referenceCheck,
-              width_check,
-            ];
-            const conditions_Heat_Seal_Patch_Box_Carton_Divider_Hanger_Poly_Bag_Sticker_Tag =
-              [
-                supplier_nameCheck,
-                Supplier_Quality_ReferenceCheck,
-                company_seasonCheck,
-              ];
-            const conditions_Label = [
-              supplier_nameCheck,
-              Supplier_Quality_ReferenceCheck,
-              company_seasonCheck,
-              length_check,
-              width_check,
-            ];
-            const conditions_Mobilon = [
-              supplier_nameCheck,
-              Supplier_Quality_ReferenceCheck,
-              company_seasonCheck,
-              width_check,
-            ];
-            const conditions_Ring_Slide_Tape = [
-              supplier_nameCheck,
-              Supplier_Quality_ReferenceCheck,
-              company_seasonCheck,
-              size_check,
-            ];
-            const conditions_Zipper = [
-              supplier_nameCheck,
-              Supplier_Quality_ReferenceCheck,
-              company_seasonCheck,
-              zipper_lengthCheck,
-            ];
-            const conditions_Dye_Wash = [
-              graphic_check,
-              wd_numberCheck,
-              company_seasonCheck,
-            ];
-            const conditions_Embroidery_Heat_Transfer_Print_Applique_Bonding = [
-              company_seasonCheck,
-            ];
-            const conditions_Tag_Pin = [
-              supplier_nameCheck,
-              Supplier_Quality_ReferenceCheck,
-              company_seasonCheck,
-              length_check,
-            ];
+                  if (match) {
+                    // Extract and format the season and year
+                    const seasonPart = match[0]; // Get the matched part: "-Fall-2024"
+                    quote_season = seasonPart
+                      .split('-')
+                      .filter(Boolean)
+                      .join(' '); // Split by hyphen, remove empty strings, and join with a space
+                  }
 
-            // Your condition handling logic
-            if (
-              extracted_subMaterialType == 'Collar' ||
-              extracted_subMaterialType == 'Cuff'
-            ) {
-              processQuotes('Collar_Cuff', conditions_collar_cuff, Qoute);
-            }
+                  //console.log(quote_season);
+                  //console.log('this is the style', Style);
+                  console.log('THIS IS QUOTE DATA', Qoute);
 
-            if (
-              [
-                'Interlining',
-                'Pocketing',
-                'Warp Knit',
-                'Weft Knit',
-                'Woven',
-              ].includes(extracted_subMaterialType)
-            ) {
-              processQuotes(
-                'Interlining_Pocketing_Warp_Knit_Weft_Knit_Woven',
-                conditions_Interlining_Pocketing_Warp_Knit_Weft_Knit_Woven,
-                Qoute,
+                  //extreact the sub-material part from item_name of plm data
+                  subMaterialType = Qoute.item_name;
+                  let delimiter = ' - ';
+                  let index = subMaterialType.indexOf(delimiter);
+                  let extracted_subMaterialType;
+                  if (index !== -1 && delimiter) {
+                    extracted_subMaterialType = subMaterialType.substring(
+                      index + 1 + delimiter.length,
+                    );
+                  } else {
+                    console.error('index or delimiter is undefined.');
+                  }
+                  sub_mat_array_under_one_ref.push(extracted_subMaterialType);
+
+                  // Compare with PLM Data
+                  supplier_nameCheck = Qoute.supplier_name
+                    ? Qoute.supplier_name.toUpperCase() === supplierName
+                    : false;
+
+                  //console.log('quote supplier',Qoute.supplier_name.toUpperCase());
+                  //console.log('2nd supplier',supplierName);
+
+                  // Supplier_Quality_ReferenceCheck =
+                  //   Supplier_Quality_Reference ===
+                  //   Qoute['Supplier_Quality_Reference'].toUpperCase();
+
+                  company_seasonCheck = Season === quote_season;
+                  //color_baseCheck = Color_Base ===
+                  //size_check = Size ===
+                  //customer_referenceCheck ===
+                  //width_check ===
+                  // length_check ===
+                  //diameter_check===
+                  //wd_numberCheck===
+                  //graphic_check===
+                  //zipper_lengthCheck ===
+
+                  // List of conditions
+                  const conditions_collar_cuff = [
+                    supplier_nameCheck,
+                    Supplier_Quality_ReferenceCheck,
+                    company_seasonCheck,
+                    color_baseCheck,
+                    size_check,
+                  ];
+                  const conditions_Interlining_Pocketing_Warp_Knit_Weft_Knit_Woven =
+                    [
+                      supplier_nameCheck,
+                      Supplier_Quality_ReferenceCheck,
+                      company_seasonCheck,
+                      color_baseCheck,
+                    ];
+                  const conditions_Button_Eyelet = [
+                    supplier_nameCheck,
+                    Supplier_Quality_ReferenceCheck,
+                    company_seasonCheck,
+                    diameter_check,
+                  ];
+                  const conditions_Elastic = [
+                    supplier_nameCheck,
+                    Supplier_Quality_ReferenceCheck,
+                    customer_referenceCheck,
+                    width_check,
+                  ];
+                  const conditions_Heat_Seal_Patch_Box_Carton_Divider_Hanger_Poly_Bag_Sticker_Tag =
+                    [
+                      supplier_nameCheck,
+                      Supplier_Quality_ReferenceCheck,
+                      company_seasonCheck,
+                    ];
+                  const conditions_Label = [
+                    supplier_nameCheck,
+                    Supplier_Quality_ReferenceCheck,
+                    company_seasonCheck,
+                    length_check,
+                    width_check,
+                  ];
+                  const conditions_Mobilon = [
+                    supplier_nameCheck,
+                    Supplier_Quality_ReferenceCheck,
+                    company_seasonCheck,
+                    width_check,
+                  ];
+                  const conditions_Ring_Slide_Tape = [
+                    supplier_nameCheck,
+                    Supplier_Quality_ReferenceCheck,
+                    company_seasonCheck,
+                    size_check,
+                  ];
+                  const conditions_Zipper = [
+                    supplier_nameCheck,
+                    Supplier_Quality_ReferenceCheck,
+                    company_seasonCheck,
+                    zipper_lengthCheck,
+                  ];
+                  const conditions_Dye_Wash = [
+                    graphic_check,
+                    wd_numberCheck,
+                    company_seasonCheck,
+                  ];
+                  const conditions_Embroidery_Heat_Transfer_Print_Applique_Bonding =
+                    [company_seasonCheck];
+                  const conditions_Tag_Pin = [
+                    supplier_nameCheck,
+                    Supplier_Quality_ReferenceCheck,
+                    company_seasonCheck,
+                    length_check,
+                  ];
+
+                  // Your condition handling logic
+                  if (
+                    extracted_subMaterialType == 'Collar' ||
+                    extracted_subMaterialType == 'Cuff'
+                  ) {
+                    processQuotes('Collar_Cuff', conditions_collar_cuff, Qoute);
+                  }
+
+                  if (
+                    [
+                      'Interlining',
+                      'Pocketing',
+                      'Warp Knit',
+                      'Weft Knit',
+                      'Woven',
+                    ].includes(extracted_subMaterialType)
+                  ) {
+                    processQuotes(
+                      'Interlining_Pocketing_Warp_Knit_Weft_Knit_Woven',
+                      conditions_Interlining_Pocketing_Warp_Knit_Weft_Knit_Woven,
+                      Qoute,
+                    );
+                  }
+
+                  if (
+                    extracted_subMaterialType == 'Button' ||
+                    extracted_subMaterialType == 'Eyelet'
+                  ) {
+                    processQuotes(
+                      'Button_Eyelet',
+                      conditions_Button_Eyelet,
+                      Qoute,
+                    );
+                  }
+
+                  // Continue similarly for other sub-material types and conditions
+
+                  if (extracted_subMaterialType == 'Elastic') {
+                    processQuotes('Elastic', conditions_Elastic, Qoute);
+                  }
+
+                  if (
+                    [
+                      'Heat Seal',
+                      'Patch',
+                      'Box',
+                      'Carton',
+                      'Divider',
+                      'Hanger',
+                      'Poly Bag',
+                      'Sticker',
+                      'Tag',
+                    ].includes(extracted_subMaterialType)
+                  ) {
+                    processQuotes(
+                      'Heat_Seal_Patch_Box_Carton_Divider_Hanger_Poly_Bag_Sticker_Tag',
+                      conditions_Heat_Seal_Patch_Box_Carton_Divider_Hanger_Poly_Bag_Sticker_Tag,
+                      Qoute,
+                    );
+                  }
+
+                  if (
+                    extracted_subMaterialType == 'Dye' ||
+                    extracted_subMaterialType == 'Wash'
+                  ) {
+                    processQuotes('Dye_Wash', conditions_Dye_Wash, Qoute);
+                  }
+
+                  if (
+                    [
+                      'Embroidery',
+                      'Heat Transfer',
+                      'Print',
+                      'Applique',
+                      'Bonding',
+                    ].includes(extracted_subMaterialType)
+                  ) {
+                    processQuotes(
+                      'Embroidery_Heat_Transfer_Print_Applique_Bonding',
+                      conditions_Embroidery_Heat_Transfer_Print_Applique_Bonding,
+                      Qoute,
+                    );
+                  }
+
+                  if (extracted_subMaterialType == 'Tag Pin') {
+                    processQuotes('Tag_Pin', conditions_Tag_Pin, Qoute);
+                  }
+                }
+              }
+            } else {
+              console.error(
+                "BrandixQuoteData[Style] or its 'data' property is undefined.",
               );
             }
+            if (StylesPlmData[Style] !== undefined) {
+              Department = StylesPlmData[Style].department;
+              Division = StylesPlmData[Style].division;
+              Bom = Settings.BomDefaultName;
 
-            if (
-              extracted_subMaterialType == 'Button' ||
-              extracted_subMaterialType == 'Eyelet'
-            ) {
-              processQuotes('Button_Eyelet', conditions_Button_Eyelet, Qoute);
-            }
-
-            // Continue similarly for other sub-material types and conditions
-
-            if (extracted_subMaterialType == 'Elastic') {
-              processQuotes('Elastic', conditions_Elastic, Qoute);
-            }
-
-            if (
-              [
-                'Heat Seal',
-                'Patch',
-                'Box',
-                'Carton',
-                'Divider',
-                'Hanger',
-                'Poly Bag',
-                'Sticker',
-                'Tag',
-              ].includes(extracted_subMaterialType)
-            ) {
-              processQuotes(
-                'Heat_Seal_Patch_Box_Carton_Divider_Hanger_Poly_Bag_Sticker_Tag',
-                conditions_Heat_Seal_Patch_Box_Carton_Divider_Hanger_Poly_Bag_Sticker_Tag,
-                Qoute,
-              );
-            }
-
-            if (
-              extracted_subMaterialType == 'Dye' ||
-              extracted_subMaterialType == 'Wash'
-            ) {
-              processQuotes('Dye_Wash', conditions_Dye_Wash, Qoute);
-            }
-
-            if (
-              [
-                'Embroidery',
-                'Heat Transfer',
-                'Print',
-                'Applique',
-                'Bonding',
-              ].includes(extracted_subMaterialType)
-            ) {
-              processQuotes(
-                'Embroidery_Heat_Transfer_Print_Applique_Bonding',
-                conditions_Embroidery_Heat_Transfer_Print_Applique_Bonding,
-                Qoute,
-              );
-            }
-
-            if (extracted_subMaterialType == 'Tag Pin') {
-              processQuotes('Tag_Pin', conditions_Tag_Pin, Qoute);
+              ele.uom = uom;
+              ele.Department = Department;
+              ele.Division = Division;
             }
           }
 
-          if (StylesPlmData[Style] !== undefined) {
-            Department = StylesPlmData[Style].department;
-            Division = StylesPlmData[Style].division;
-            Bom = Settings.BomDefaultName;
-
-            ele.uom = uom;
-            ele.Department = Department;
-            ele.Division = Division;
-          }
-        }
-
-        /* if (BrandixQoute == '') {
+          /* if (BrandixQoute == '') {
           if (
             supplier_nameCheck === false &&
             Supplier_Quality_ReferenceCheck === false
@@ -378,32 +438,39 @@ export class ExcelService {
           else BrandixQoute = 'Reference Error';
         }
         */
-        ele.Bom = Bom;
+          ele.Bom = Bom;
 
-        const UniqBrandixQuoteArray_1 = [];
-        const UniqBrandixQuoteArray_2 = [];
-        const UniqBrandixQuoteArray_3 = [];
-        const UniqBrandixQuoteArray_4 = [];
-        const UniqBrandixQuoteArray_5 = [];
-        const seen = {};
+          const UniqBrandixQuoteArray_1 = [];
+          const UniqBrandixQuoteArray_2 = [];
+          const UniqBrandixQuoteArray_3 = [];
+          const UniqBrandixQuoteArray_4 = [];
+          const UniqBrandixQuoteArray_5 = [];
+          const seen = {};
+          // assign quote based on sub matrial of the row
+          //capture su mat
+          //according to that display the quote which has max count
 
-        // Extract and display unique quotes for each sub-material type with the maximum conditions satisfied
-        for (const subMaterialType in maxConditionCounts) {
-          const maxConditionCount = maxConditionCounts[subMaterialType];
-          const arrayName = `${subMaterialType}_${maxConditionCount}`;
-          const uniqueQuotes = getUniqueQuotes(BrandixQuoteArrays[arrayName]);
-          ele.BrandixQuote = uniqueQuotes;
-          console.log(`Sub-Material Type: ${subMaterialType}`);
-          console.log(`Max Conditions Satisfied: ${maxConditionCount}`);
-          console.log('Unique Quotes:', uniqueQuotes);
-        }
+          // Extract and display unique quotes for each sub-material type with the maximum conditions satisfied
+          for (const subMaterialType in maxConditionCounts) {
+            const maxConditionCount = maxConditionCounts[subMaterialType];
+            const arrayName = `${subMaterialType}_${maxConditionCount}`;
+            const uniqueQuotes = getUniqueQuotes(BrandixQuoteArrays[arrayName]);
+            ele.BrandixQuote = uniqueQuotes;
+            console.log(`Sub-Material Type: ${subMaterialType}`);
+            console.log(`Max Conditions Satisfied: ${maxConditionCount}`);
+            console.log('Unique Quotes:', uniqueQuotes);
+          }
+          console.log('this is sub matsss', sub_mat_array_under_one_ref);
+          console.log('sup qual', Supplier_Quality_Reference);
 
-        // Reset
-        BrandixQoute = '';
-        uom = '';
-      });
+          // Reset
+          BrandixQoute = '';
+          uom = '';
+        });
+      }
+    } else {
+      console.error('Styles array is undefined or not an array.');
     }
-
     return AllData;
   }
 
@@ -452,6 +519,10 @@ export class ExcelService {
     const BomPlmData = {};
     const Styles = [];
 
+    // let BomDetails = await instance.get(
+    //   `${Settings.PLM_API}/GetBomItems/${ele[Settings.ExcelIndex.STYLE_NO_INDIVDUAL]}`,
+    // );
+
     const promises = ExcelData.map(async (ele: any) => {
       if (!AllData[ele[Settings.ExcelIndex.STYLE_NO_INDIVDUAL]]) {
         AllData[ele[Settings.ExcelIndex.STYLE_NO_INDIVDUAL]] = [];
@@ -460,10 +531,11 @@ export class ExcelService {
         if (
           ele[Settings.ExcelIndex.STYLE_NO_INDIVDUAL] != Settings.StyleHeader
         ) {
+          // let passingVal = `${Settings.PLM_API}/GetAllStylesAndBoms/${ele[Settings.ExcelIndex.STYLE_NO_INDIVDUAL]}`;
           let StyleDetails = await instance.get(
             `${Settings.PLM_API}/GetAllStylesAndBoms/${ele[Settings.ExcelIndex.STYLE_NO_INDIVDUAL]}`,
           );
-
+          console.log(StyleDetails.data);
           //iterate through season list
           StyleDetails.data.SeasonList.forEach((e: any) => {
             //if fs == season in excel that season data will store in stylesPlmData
@@ -512,17 +584,18 @@ export class ExcelService {
               // If a matching season key was found, process the BOM data for that season
               return Promise.all(
                 e[bomSeasonKey].map(async (s: any) => {
-                  if (s.node_name === Settings.BomDefaultName) {
-                    BomPlmData[ele[Settings.ExcelIndex.STYLE_NO_INDIVDUAL]] = s;
+                  // if (s.node_name === Settings.BomDefaultName) {
+                  BomPlmData[ele[Settings.ExcelIndex.STYLE_NO_INDIVDUAL]] = s;
+                  console.log(BomPlmData);
 
-                    BrandixQuoteData[
-                      ele[Settings.ExcelIndex.STYLE_NO_INDIVDUAL]
-                    ] = (
-                      await instance.get(
-                        `${Settings.PLM_API}/GetBrandixQuote/${s.latest_revision}`,
-                      )
-                    ).data;
-                  }
+                  BrandixQuoteData[
+                    ele[Settings.ExcelIndex.STYLE_NO_INDIVDUAL]
+                  ] = (
+                    await instance.get(
+                      `${Settings.PLM_API}/GetBrandixQuote/${s.latest_revision}`,
+                    )
+                  ).data;
+                  //  }
                 }),
               );
             }
@@ -561,7 +634,7 @@ export class ExcelService {
       All: AllData,
       Styles: Styles,
       StylesPlmData: StylesPlmData,
-      BomPlmData: BomPlmData,
+      // BomPlmData: BomPlmData,
       BrandixQuoteData: BrandixQuoteData,
     }));
   }
