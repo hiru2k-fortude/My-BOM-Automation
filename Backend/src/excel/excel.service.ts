@@ -306,7 +306,6 @@ export class ExcelService {
                     length_check,
                   ];
 
-                  // Your condition handling logic
                   if (
                     extracted_subMaterialType == 'Collar' ||
                     extracted_subMaterialType == 'Cuff'
@@ -340,8 +339,6 @@ export class ExcelService {
                       Qoute,
                     );
                   }
-
-                  // Continue similarly for other sub-material types and conditions
 
                   if (extracted_subMaterialType == 'Elastic') {
                     processQuotes('Elastic', conditions_Elastic, Qoute);
@@ -411,25 +408,7 @@ export class ExcelService {
             }
           }
 
-          /* if (BrandixQoute == '') {
-          if (
-            supplier_nameCheck === false &&
-            Supplier_Quality_ReferenceCheck === false
-          )
-            BrandixQoute = 'Supplier Error, Reference Error';
-          else if (supplier_nameCheck === false)
-            BrandixQoute = 'Supplier Error';
-          else BrandixQoute = 'Reference Error';
-        }
-        */
           ele.Bom = Bom;
-
-          const UniqBrandixQuoteArray_1 = [];
-          const UniqBrandixQuoteArray_2 = [];
-          const UniqBrandixQuoteArray_3 = [];
-          const UniqBrandixQuoteArray_4 = [];
-          const UniqBrandixQuoteArray_5 = [];
-          const seen = {};
 
           // Extract and display unique quotes for each sub-material type with the maximum conditions satisfied
           for (const subMaterialType in maxConditionCounts) {
