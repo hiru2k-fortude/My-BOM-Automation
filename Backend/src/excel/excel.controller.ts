@@ -30,8 +30,6 @@ export class ExcelController {
   ) {
     let TemplateData: any;
     try {
-      console.log('Form Data:', formData);
-
       // Read the Excel sheet
       const data = this.excelService.readExcelSheet(files[0], 0);
 
@@ -43,8 +41,7 @@ export class ExcelController {
         formData,
         UEEData,
       );
-      console.log(UEEData);
-      console.log('Success');
+
       // Send the UEE template data as response
       res.send({ UEETemplate: TemplateData });
     } catch (error) {

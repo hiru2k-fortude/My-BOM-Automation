@@ -111,12 +111,7 @@ export class ExcelService {
           //WD_Number = ele.
           //Graphic = ele.
 
-          //
-          //no need to compare the style
           Style_Number = ele.STYLE_NO_INDIVDUAL;
-
-          ///////
-          //console.log('THIS IS ELE DATA', ele);
 
           // materialType = ele.BOM_SECTION;
           const BrandixQuoteArrays = {};
@@ -209,10 +204,6 @@ export class ExcelService {
                       .join(' '); // Split by hyphen, remove empty strings, and join with a space
                   }
 
-                  //console.log(quote_season);
-                  //console.log('this is the style', Style);
-                  console.log('THIS IS QUOTE DATA', Qoute);
-
                   //extreact the sub-material part from item_name of plm data
                   subMaterialType = Qoute.item_name;
                   let delimiter = ' - ';
@@ -231,13 +222,6 @@ export class ExcelService {
                   supplier_nameCheck = Qoute.supplier_name
                     ? Qoute.supplier_name.toUpperCase() === supplierName
                     : false;
-
-                  //console.log('quote supplier',Qoute.supplier_name.toUpperCase());
-                  //console.log('2nd supplier',supplierName);
-
-                  // Supplier_Quality_ReferenceCheck =
-                  //   Supplier_Quality_Reference ===
-                  //   Qoute['Supplier_Quality_Reference'].toUpperCase();
 
                   company_seasonCheck = Season === quote_season;
                   //color_baseCheck = Color_Base ===
@@ -446,9 +430,6 @@ export class ExcelService {
           const UniqBrandixQuoteArray_4 = [];
           const UniqBrandixQuoteArray_5 = [];
           const seen = {};
-          // assign quote based on sub matrial of the row
-          //capture su mat
-          //according to that display the quote which has max count
 
           // Extract and display unique quotes for each sub-material type with the maximum conditions satisfied
           for (const subMaterialType in maxConditionCounts) {
@@ -456,12 +437,7 @@ export class ExcelService {
             const arrayName = `${subMaterialType}_${maxConditionCount}`;
             const uniqueQuotes = getUniqueQuotes(BrandixQuoteArrays[arrayName]);
             ele.BrandixQuote = uniqueQuotes;
-            console.log(`Sub-Material Type: ${subMaterialType}`);
-            console.log(`Max Conditions Satisfied: ${maxConditionCount}`);
-            console.log('Unique Quotes:', uniqueQuotes);
           }
-          console.log('this is sub matsss', sub_mat_array_under_one_ref);
-          console.log('sup qual', Supplier_Quality_Reference);
 
           // Reset
           BrandixQoute = '';
@@ -535,7 +511,7 @@ export class ExcelService {
           let StyleDetails = await instance.get(
             `${Settings.PLM_API}/GetAllStylesAndBoms/${ele[Settings.ExcelIndex.STYLE_NO_INDIVDUAL]}`,
           );
-          console.log(StyleDetails.data);
+
           //iterate through season list
           StyleDetails.data.SeasonList.forEach((e: any) => {
             //if fs == season in excel that season data will store in stylesPlmData
@@ -555,15 +531,6 @@ export class ExcelService {
               }
             }
           });
-          ///////
-          console.log(
-            'this is the style details season list',
-            StyleDetails.data.SeasonList,
-          );
-          console.log(
-            'this is the style details bom list',
-            StyleDetails.data.BomList,
-          );
 
           const bomPromises = StyleDetails.data.BomList.map(async (e: any) => {
             // Extract the season part from e.fs in the BOM list
@@ -586,7 +553,6 @@ export class ExcelService {
                 e[bomSeasonKey].map(async (s: any) => {
                   // if (s.node_name === Settings.BomDefaultName) {
                   BomPlmData[ele[Settings.ExcelIndex.STYLE_NO_INDIVDUAL]] = s;
-                  console.log(BomPlmData);
 
                   BrandixQuoteData[
                     ele[Settings.ExcelIndex.STYLE_NO_INDIVDUAL]
