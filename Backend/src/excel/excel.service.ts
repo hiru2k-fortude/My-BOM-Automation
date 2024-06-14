@@ -40,13 +40,13 @@ export class ExcelService {
     let Color_Base: string;
     let Item_Name: string;
     let Style_Number: string;
-    let Width: number;
-    let Length: number;
-    let Size: number;
-    let Diameter: number;
-    let Zipper_Length: number;
-    let WD_Number: number;
-    let Graphic: number;
+    //let Width: number;
+    // let Length: number;
+    //let Size: number;
+    //let Diameter: number;
+    //let Zipper_Length: number;
+    // let WD_Number: number;
+    // let Graphic: number;
 
     let uom: string = '';
     let quote_season: string;
@@ -63,13 +63,13 @@ export class ExcelService {
     let color_baseCheck: boolean = false;
     let customer_referenceCheck: boolean = false; //item name
     let style_noCheck: boolean = false;
-    let width_check: boolean = false;
-    let length_check: boolean = false;
-    let size_check: boolean = false;
-    let diameter_check: boolean = false;
-    let zipper_lengthCheck: boolean = false;
-    let wd_numberCheck: boolean = false;
-    let graphic_check: boolean = false;
+    // let width_check: boolean = false;
+    //  let length_check: boolean = false;
+    // let size_check: boolean = false;
+    // let diameter_check: boolean = false;
+    // let zipper_lengthCheck: boolean = false;
+    // let wd_numberCheck: boolean = false;
+    // let graphic_check: boolean = false;
 
     // Function to count the number of true conditions
     function countTrueConditions(conditions) {
@@ -175,228 +175,227 @@ export class ExcelService {
             );
           }
 
+          console.log(BrandixQuoteData[Style]);
+          console.log('hi hi', BrandixQuoteData[Style].data);
+
           if (BrandixQuoteData[Style] !== undefined) {
-            if (BrandixQuoteData[Style] && BrandixQuoteData[Style].data) {
-              for (let i = 0; i < BrandixQuoteData[Style].data.length; i++) {
-                let Qoute = BrandixQuoteData[Style].data[i];
+            for (let i = 0; i < BrandixQuoteData[Style].data.length; i++) {
+              console.log(BrandixQuoteData[Style].data.length);
+              let Qoute = BrandixQuoteData[Style].data[i];
 
-                Supplier_Quality_ReferenceCheck =
-                  Supplier_Quality_Reference ===
-                  (Qoute['Supplier_Quality_Reference']
-                    ? Qoute['Supplier_Quality_Reference'].toUpperCase()
-                    : '');
+              Supplier_Quality_ReferenceCheck =
+                Supplier_Quality_Reference ===
+                (Qoute['Supplier_Quality_Reference']
+                  ? Qoute['Supplier_Quality_Reference'].toUpperCase()
+                  : '');
 
-                if (
-                  Supplier_Quality_ReferenceCheck == true ||
-                  Bom_Section == 'Print'
-                ) {
-                  let long_quote_season = StylesPlmData[Style].fs;
+              if (
+                Supplier_Quality_ReferenceCheck == true ||
+                Bom_Section == 'Print'
+              ) {
+                let long_quote_season = StylesPlmData[Style].fs;
 
-                  // Extract the season part from e.fs
-                  const match = long_quote_season.match(/-(\w+)-\d{4}$/);
+                // Extract the season part from e.fs
+                const match = long_quote_season.match(/-(\w+)-\d{4}$/);
 
-                  if (match) {
-                    // Extract and format the season and year
-                    const seasonPart = match[0]; // Get the matched part: "-Fall-2024"
-                    quote_season = seasonPart
-                      .split('-')
-                      .filter(Boolean)
-                      .join(' '); // Split by hyphen, remove empty strings, and join with a space
-                  }
+                if (match) {
+                  // Extract and format the season and year
+                  const seasonPart = match[0]; // Get the matched part: "-Fall-2024"
+                  quote_season = seasonPart
+                    .split('-')
+                    .filter(Boolean)
+                    .join(' '); // Split by hyphen, remove empty strings, and join with a space
+                }
 
-                  //extreact the sub-material part from item_name of plm data
-                  subMaterialType = Qoute.item_name;
-                  let delimiter = ' - ';
-                  let index = subMaterialType.indexOf(delimiter);
-                  let extracted_subMaterialType;
-                  if (index !== -1 && delimiter) {
-                    extracted_subMaterialType = subMaterialType.substring(
-                      index + 1 + delimiter.length,
-                    );
-                  } else {
-                    console.error('index or delimiter is undefined.');
-                  }
-                  sub_mat_array_under_one_ref.push(extracted_subMaterialType);
+                //extreact the sub-material part from item_name of plm data
+                subMaterialType = Qoute.item_name;
+                let delimiter = ' - ';
+                let index = subMaterialType.indexOf(delimiter);
+                let extracted_subMaterialType;
+                if (index !== -1 && delimiter) {
+                  extracted_subMaterialType = subMaterialType.substring(
+                    index + 1 + delimiter.length,
+                  );
+                } else {
+                  console.error('index or delimiter is undefined.');
+                }
+                sub_mat_array_under_one_ref.push(extracted_subMaterialType);
 
-                  // Compare with PLM Data
-                  supplier_nameCheck = Qoute.supplier_name
-                    ? Qoute.supplier_name.toUpperCase() === supplierName
-                    : false;
+                // Compare with PLM Data
+                supplier_nameCheck = Qoute.supplier_name
+                  ? Qoute.supplier_name.toUpperCase() === supplierName
+                  : false;
 
-                  company_seasonCheck = Season === quote_season;
-                  //color_baseCheck = Color_Base ===
-                  //size_check = Size ===
-                  //customer_referenceCheck ===
-                  //width_check ===
-                  // length_check ===
-                  //diameter_check===
-                  //wd_numberCheck===
-                  //graphic_check===
-                  //zipper_lengthCheck ===
+                company_seasonCheck = Season === quote_season;
+                //color_baseCheck = Color_Base ===
+                //size_check = Size ===
+                //customer_referenceCheck ===
+                //width_check ===
+                // length_check ===
+                //diameter_check===
+                //wd_numberCheck===
+                //graphic_check===
+                //zipper_lengthCheck ===
 
-                  // List of conditions
-                  const conditions_collar_cuff = [
+                // List of conditions
+                const conditions_collar_cuff = [
+                  supplier_nameCheck,
+                  Supplier_Quality_ReferenceCheck,
+                  company_seasonCheck,
+                  color_baseCheck,
+                  //   size_check,
+                ];
+                const conditions_Interlining_Pocketing_Warp_Knit_Weft_Knit_Woven =
+                  [
                     supplier_nameCheck,
                     Supplier_Quality_ReferenceCheck,
                     company_seasonCheck,
                     color_baseCheck,
-                    size_check,
                   ];
-                  const conditions_Interlining_Pocketing_Warp_Knit_Weft_Knit_Woven =
-                    [
-                      supplier_nameCheck,
-                      Supplier_Quality_ReferenceCheck,
-                      company_seasonCheck,
-                      color_baseCheck,
-                    ];
-                  const conditions_Button_Eyelet = [
+                const conditions_Button_Eyelet = [
+                  supplier_nameCheck,
+                  Supplier_Quality_ReferenceCheck,
+                  company_seasonCheck,
+                  // diameter_check,
+                ];
+                const conditions_Elastic = [
+                  supplier_nameCheck,
+                  Supplier_Quality_ReferenceCheck,
+                  customer_referenceCheck,
+                  // width_check,
+                ];
+                const conditions_Heat_Seal_Patch_Box_Carton_Divider_Hanger_Poly_Bag_Sticker_Tag =
+                  [
                     supplier_nameCheck,
                     Supplier_Quality_ReferenceCheck,
                     company_seasonCheck,
-                    diameter_check,
                   ];
-                  const conditions_Elastic = [
-                    supplier_nameCheck,
-                    Supplier_Quality_ReferenceCheck,
-                    customer_referenceCheck,
-                    width_check,
-                  ];
-                  const conditions_Heat_Seal_Patch_Box_Carton_Divider_Hanger_Poly_Bag_Sticker_Tag =
-                    [
-                      supplier_nameCheck,
-                      Supplier_Quality_ReferenceCheck,
-                      company_seasonCheck,
-                    ];
-                  const conditions_Label = [
-                    supplier_nameCheck,
-                    Supplier_Quality_ReferenceCheck,
-                    company_seasonCheck,
-                    length_check,
-                    width_check,
-                  ];
-                  const conditions_Mobilon = [
-                    supplier_nameCheck,
-                    Supplier_Quality_ReferenceCheck,
-                    company_seasonCheck,
-                    width_check,
-                  ];
-                  const conditions_Ring_Slide_Tape = [
-                    supplier_nameCheck,
-                    Supplier_Quality_ReferenceCheck,
-                    company_seasonCheck,
-                    size_check,
-                  ];
-                  const conditions_Zipper = [
-                    supplier_nameCheck,
-                    Supplier_Quality_ReferenceCheck,
-                    company_seasonCheck,
-                    zipper_lengthCheck,
-                  ];
-                  const conditions_Dye_Wash = [
-                    graphic_check,
-                    wd_numberCheck,
-                    company_seasonCheck,
-                  ];
-                  const conditions_Embroidery_Heat_Transfer_Print_Applique_Bonding =
-                    [company_seasonCheck];
-                  const conditions_Tag_Pin = [
-                    supplier_nameCheck,
-                    Supplier_Quality_ReferenceCheck,
-                    company_seasonCheck,
-                    length_check,
-                  ];
+                const conditions_Label = [
+                  supplier_nameCheck,
+                  Supplier_Quality_ReferenceCheck,
+                  company_seasonCheck,
+                  // length_check,
+                  // width_check,
+                ];
+                const conditions_Mobilon = [
+                  supplier_nameCheck,
+                  Supplier_Quality_ReferenceCheck,
+                  company_seasonCheck,
+                  // width_check,
+                ];
+                const conditions_Ring_Slide_Tape = [
+                  supplier_nameCheck,
+                  Supplier_Quality_ReferenceCheck,
+                  company_seasonCheck,
+                  // size_check,
+                ];
+                const conditions_Zipper = [
+                  supplier_nameCheck,
+                  Supplier_Quality_ReferenceCheck,
+                  company_seasonCheck,
+                  // zipper_lengthCheck,
+                ];
+                const conditions_Dye_Wash = [
+                  // graphic_check,
+                  // wd_numberCheck,
+                  company_seasonCheck,
+                ];
+                const conditions_Embroidery_Heat_Transfer_Print_Applique_Bonding =
+                  [company_seasonCheck];
+                const conditions_Tag_Pin = [
+                  supplier_nameCheck,
+                  Supplier_Quality_ReferenceCheck,
+                  company_seasonCheck,
+                  // length_check,
+                ];
 
-                  if (
-                    extracted_subMaterialType == 'Collar' ||
-                    extracted_subMaterialType == 'Cuff'
-                  ) {
-                    processQuotes('Collar_Cuff', conditions_collar_cuff, Qoute);
-                  }
+                if (
+                  extracted_subMaterialType == 'Collar' ||
+                  extracted_subMaterialType == 'Cuff'
+                ) {
+                  processQuotes('Collar_Cuff', conditions_collar_cuff, Qoute);
+                }
 
-                  if (
-                    [
-                      'Interlining',
-                      'Pocketing',
-                      'Warp Knit',
-                      'Weft Knit',
-                      'Woven',
-                    ].includes(extracted_subMaterialType)
-                  ) {
-                    processQuotes(
-                      'Interlining_Pocketing_Warp_Knit_Weft_Knit_Woven',
-                      conditions_Interlining_Pocketing_Warp_Knit_Weft_Knit_Woven,
-                      Qoute,
-                    );
-                  }
+                if (
+                  [
+                    'Interlining',
+                    'Pocketing',
+                    'Warp Knit',
+                    'Weft Knit',
+                    'Woven',
+                  ].includes(extracted_subMaterialType)
+                ) {
+                  processQuotes(
+                    'Interlining_Pocketing_Warp_Knit_Weft_Knit_Woven',
+                    conditions_Interlining_Pocketing_Warp_Knit_Weft_Knit_Woven,
+                    Qoute,
+                  );
+                }
 
-                  if (
-                    extracted_subMaterialType == 'Button' ||
-                    extracted_subMaterialType == 'Eyelet'
-                  ) {
-                    processQuotes(
-                      'Button_Eyelet',
-                      conditions_Button_Eyelet,
-                      Qoute,
-                    );
-                  }
+                if (
+                  extracted_subMaterialType == 'Button' ||
+                  extracted_subMaterialType == 'Eyelet'
+                ) {
+                  processQuotes(
+                    'Button_Eyelet',
+                    conditions_Button_Eyelet,
+                    Qoute,
+                  );
+                }
 
-                  if (extracted_subMaterialType == 'Elastic') {
-                    processQuotes('Elastic', conditions_Elastic, Qoute);
-                  }
+                if (extracted_subMaterialType == 'Elastic') {
+                  processQuotes('Elastic', conditions_Elastic, Qoute);
+                }
 
-                  if (
-                    [
-                      'Heat Seal',
-                      'Patch',
-                      'Box',
-                      'Carton',
-                      'Divider',
-                      'Hanger',
-                      'Poly Bag',
-                      'Sticker',
-                      'Tag',
-                    ].includes(extracted_subMaterialType)
-                  ) {
-                    processQuotes(
-                      'Heat_Seal_Patch_Box_Carton_Divider_Hanger_Poly_Bag_Sticker_Tag',
-                      conditions_Heat_Seal_Patch_Box_Carton_Divider_Hanger_Poly_Bag_Sticker_Tag,
-                      Qoute,
-                    );
-                  }
+                if (
+                  [
+                    'Heat Seal',
+                    'Patch',
+                    'Box',
+                    'Carton',
+                    'Divider',
+                    'Hanger',
+                    'Poly Bag',
+                    'Sticker',
+                    'Tag',
+                  ].includes(extracted_subMaterialType)
+                ) {
+                  processQuotes(
+                    'Heat_Seal_Patch_Box_Carton_Divider_Hanger_Poly_Bag_Sticker_Tag',
+                    conditions_Heat_Seal_Patch_Box_Carton_Divider_Hanger_Poly_Bag_Sticker_Tag,
+                    Qoute,
+                  );
+                }
 
-                  if (
-                    extracted_subMaterialType == 'Dye' ||
-                    extracted_subMaterialType == 'Wash'
-                  ) {
-                    processQuotes('Dye_Wash', conditions_Dye_Wash, Qoute);
-                  }
+                if (
+                  extracted_subMaterialType == 'Dye' ||
+                  extracted_subMaterialType == 'Wash'
+                ) {
+                  processQuotes('Dye_Wash', conditions_Dye_Wash, Qoute);
+                }
 
-                  if (
-                    [
-                      'Embroidery',
-                      'Heat Transfer',
-                      'Print',
-                      'Applique',
-                      'Bonding',
-                    ].includes(extracted_subMaterialType)
-                  ) {
-                    processQuotes(
-                      'Embroidery_Heat_Transfer_Print_Applique_Bonding',
-                      conditions_Embroidery_Heat_Transfer_Print_Applique_Bonding,
-                      Qoute,
-                    );
-                  }
+                if (
+                  [
+                    'Embroidery',
+                    'Heat Transfer',
+                    'Print',
+                    'Applique',
+                    'Bonding',
+                  ].includes(extracted_subMaterialType)
+                ) {
+                  processQuotes(
+                    'Embroidery_Heat_Transfer_Print_Applique_Bonding',
+                    conditions_Embroidery_Heat_Transfer_Print_Applique_Bonding,
+                    Qoute,
+                  );
+                }
 
-                  if (extracted_subMaterialType == 'Tag Pin') {
-                    processQuotes('Tag_Pin', conditions_Tag_Pin, Qoute);
-                  }
+                if (extracted_subMaterialType == 'Tag Pin') {
+                  processQuotes('Tag_Pin', conditions_Tag_Pin, Qoute);
                 }
               }
-            } else {
-              console.error(
-                "BrandixQuoteData[Style] or its 'data' property is undefined.",
-              );
             }
+
             if (StylesPlmData[Style] !== undefined) {
               Department = StylesPlmData[Style].department;
               Division = StylesPlmData[Style].division;
